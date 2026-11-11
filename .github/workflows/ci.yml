@@ -28,6 +28,15 @@ jobs:
           java-version: 21
           cache: maven
       - run: mvn -B -ntp test
+      - name: Show the failing reports
+        if: failure()
+        run: |
+          # One annotation per failing class: the first lines of its surefire report.
+          for report in target/surefire-reports/*.txt; do
+            grep -qE 'FAILURE|ERROR' "$report" || continue
+            body=$(head -c 3000 "$report" | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error title=$(basename "$report" .txt)::$body"
+          done
 
   postgres:
     name: Migrations and concurrency on PostgreSQL
@@ -63,6 +72,15 @@ jobs:
           mvn -B -ntp -DforkCount=1 \
             -Dtest='MigrationPostgresTest,*ConcurrencyApiTest,*PostgresApiTest,ServerErrorDetailLogTest' \
             -Dsurefire.failIfNoSpecifiedTests=false test
+      - name: Show the failing reports
+        if: failure()
+        run: |
+          # One annotation per failing class: the first lines of its surefire report.
+          for report in target/surefire-reports/*.txt; do
+            grep -qE 'FAILURE|ERROR' "$report" || continue
+            body=$(head -c 3000 "$report" | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error title=$(basename "$report" .txt)::$body"
+          done
 
   licences:
     name: REUSE licence check
