@@ -28,12 +28,14 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Real PostgreSQL lock/FK behavior; opt in against a disposable database only. */
 @EnabledIfEnvironmentVariable(named = "GLAZELAB_TEST_POSTGRES_URL", matches = ".+")
 class CombinationConcurrencyApiTest extends ApiTestBase {
+    /** This class's own picture directory: the gated classes share one JVM and one base directory, and the orphan check must see only its own files, whatever order they run in. */
+    private static Path imageDirectory() { return Path.of(System.getenv("GLAZELAB_TEST_POSTGRES_IMAGES"), "combination-concurrency"); }
     @DynamicPropertySource static void postgres(DynamicPropertyRegistry properties) {
         properties.add("spring.datasource.url", () -> System.getenv("GLAZELAB_TEST_POSTGRES_URL"));
         properties.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
         properties.add("spring.datasource.username", () -> System.getenv().getOrDefault("GLAZELAB_TEST_POSTGRES_USER", "postgres"));
         properties.add("spring.datasource.password", () -> System.getenv().getOrDefault("GLAZELAB_TEST_POSTGRES_PASSWORD", ""));
-        properties.add("glazelab.images.path", () -> System.getenv("GLAZELAB_TEST_POSTGRES_IMAGES"));
+        properties.add("glazelab.images.path", () -> imageDirectory().toString());
     }
     @Autowired TransactionTemplate transactions;
 
@@ -55,7 +57,7 @@ class CombinationConcurrencyApiTest extends ApiTestBase {
         var keys = jdbc.queryForList("select storage_key from image", String.class).stream()
                 .flatMap(key -> Stream.of(key, ImageStorage.cardKey(key)))
                 .collect(Collectors.toSet());
-        Path directory = Path.of(System.getenv("GLAZELAB_TEST_POSTGRES_IMAGES"));
+        Path directory = imageDirectory();
         Set<String> files;
         if (!Files.exists(directory)) files = Set.of();
         else try (var listed = Files.list(directory)) { files = listed.map(path -> path.getFileName().toString()).collect(Collectors.toSet()); }
