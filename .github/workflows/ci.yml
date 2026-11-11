@@ -1,0 +1,73 @@
+# Checks of the backend: the whole test suite on the in-memory database, the database migrations and the
+# PostgreSQL-gated tests against a real PostgreSQL 18 (as scripts/rehearse-postgres.sh in the deploy repository does),
+# and the licence check.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - run: mvn -B -ntp test
+
+  postgres:
+    name: Migrations and concurrency on PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GLAZELAB_TEST_POSTGRES_URL: jdbc:postgresql://127.0.0.1:5432/postgres
+      GLAZELAB_TEST_POSTGRES_USER: postgres
+      GLAZELAB_TEST_POSTGRES_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Start PostgreSQL 18
+        run: |
+          # One JVM keeps the application of every gated class in Spring's context cache, hence the many connections.
+          docker run -d --name postgres -p 127.0.0.1:5432:5432 \
+            -e POSTGRES_PASSWORD="$GLAZELAB_TEST_POSTGRES_PASSWORD" \
+            --tmpfs /var/lib/postgresql:rw,size=2g,mode=1777 \
+            docker.io/library/postgres:18-alpine -c max_connections=300
+          # The image's init phase listens on the socket only; TCP answers once the real server is up.
+          for _ in $(seq 1 60); do
+            docker exec postgres pg_isready -q -h 127.0.0.1 -U postgres && break
+            sleep 1
+          done
+          docker exec postgres pg_isready -h 127.0.0.1 -U postgres
+      - name: Migrations and PostgreSQL-gated tests
+        run: |
+          export GLAZELAB_TEST_POSTGRES_IMAGES="$(mktemp -d)"
+          mvn -B -ntp -DforkCount=1 \
+            -Dtest='MigrationPostgresTest,*ConcurrencyApiTest,*PostgresApiTest,ServerErrorDetailLogTest' \
+            -Dsurefire.failIfNoSpecifiedTests=false test
+
+  licences:
+    name: REUSE licence check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: fsfe/reuse-action@v5

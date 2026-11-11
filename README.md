@@ -14,6 +14,8 @@ Requirements: Java 21 or later and Maven 3.9 or later.
   `GLAZELAB_DB_PASSWORD`). Every setting and its environment variable is in `src/main/resources/application*.properties`.
 - Tests: `mvn test` (HTTP tests against an in-memory database; `mvn clean test` after moving packages). One class:
   `mvn -Dtest=<Class> test`.
+- Continuous integration: `.github/workflows/ci.yml` runs `mvn test`, the migrations and the PostgreSQL-gated test classes against
+  a PostgreSQL 18 container, and the REUSE licence check.
 - Package: `mvn -DskipTests package` writes `target/glazelab-<version>.jar`; `Dockerfile` builds the container image.
 - Health probe: `GET /api/health` answers `{"ok":true,"build":"<build>"}`.
 
