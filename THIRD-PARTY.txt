@@ -1,0 +1,179 @@
+
+List of third-party dependencies grouped by their license type.
+
+    Apache-2.0:
+
+        * Apache Commons Lang (org.apache.commons:commons-lang3:3.19.0 - https://commons.apache.org/proper/commons-lang/)
+        * Apache Commons Logging (commons-logging:commons-logging:1.3.6 - https://commons.apache.org/proper/commons-logging/)
+        * Apache Log4j API (org.apache.logging.log4j:log4j-api:2.25.3 - https://logging.apache.org/log4j/2.x/)
+        * AWS Event Stream (software.amazon.eventstream:eventstream:1.0.1 - https://github.com/awslabs/aws-eventstream-java)
+        * AWS Java SDK :: Annotations (software.amazon.awssdk:annotations:2.55.14 - https://aws.amazon.com/sdkforjava/core/annotations)
+        * AWS Java SDK :: Arns (software.amazon.awssdk:arns:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Auth (software.amazon.awssdk:auth:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: AWS Core (software.amazon.awssdk:aws-core:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: AWS CRT Core (software.amazon.awssdk:crt-core:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Checksums (software.amazon.awssdk:checksums:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Checksums SPI (software.amazon.awssdk:checksums-spi:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Core :: Protocols :: AWS Query Protocol (software.amazon.awssdk:aws-query-protocol:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Core :: Protocols :: AWS Xml Protocol (software.amazon.awssdk:aws-xml-protocol:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Core :: Protocols :: Json Utils (software.amazon.awssdk:json-utils:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Core :: Protocols :: Protocol Core (software.amazon.awssdk:protocol-core:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Endpoints SPI (software.amazon.awssdk:endpoints-spi:2.55.14 - https://aws.amazon.com/sdkforjava/core/endpoints-spi)
+        * AWS Java SDK :: HTTP Auth (software.amazon.awssdk:http-auth:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: HTTP Auth AWS (software.amazon.awssdk:http-auth-aws:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: HTTP Auth Event Stream (software.amazon.awssdk:http-auth-aws-eventstream:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: HTTP Auth SPI (software.amazon.awssdk:http-auth-spi:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: HTTP Client Interface (software.amazon.awssdk:http-client-spi:2.55.14 - https://aws.amazon.com/sdkforjava/http-client-spi)
+        * AWS Java SDK :: HTTP Clients :: URL Connection (software.amazon.awssdk:url-connection-client:2.55.14 - https://aws.amazon.com/sdkforjava/http-clients/url-connection-client)
+        * AWS Java SDK :: Identity SPI (software.amazon.awssdk:identity-spi:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Metrics SPI (software.amazon.awssdk:metrics-spi:2.55.14 - https://aws.amazon.com/sdkforjava/core/metrics-spi)
+        * AWS Java SDK :: Profiles (software.amazon.awssdk:profiles:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Regions (software.amazon.awssdk:regions:2.55.14 - https://aws.amazon.com/sdkforjava/core/regions)
+        * AWS Java SDK :: Retries (software.amazon.awssdk:retries:2.55.14 - https://aws.amazon.com/sdkforjava/core/retries)
+        * AWS Java SDK :: Retries API (software.amazon.awssdk:retries-spi:2.55.14 - https://aws.amazon.com/sdkforjava/core/retries-spi)
+        * AWS Java SDK :: SDK Core (software.amazon.awssdk:sdk-core:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Services :: Amazon S3 (software.amazon.awssdk:s3:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Third Party :: Jackson-core (software.amazon.awssdk:third-party-jackson-core:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * AWS Java SDK :: Utilities (software.amazon.awssdk:utils:2.55.14 - https://aws.amazon.com/sdkforjava/utils)
+        * AWS Java SDK :: Utils Lite (software.amazon.awssdk:utils-lite:2.55.14 - https://aws.amazon.com/sdkforjava)
+        * Byte Buddy (without dependencies) (net.bytebuddy:byte-buddy:1.17.8 - https://bytebuddy.net/byte-buddy)
+        * ClassMate (com.fasterxml:classmate:1.7.3 - https://github.com/FasterXML/java-classmate)
+        * flyway-core (org.flywaydb:flyway-core:11.14.1 - https://flywaydb.org/flyway-core)
+        * flyway-database-postgresql (org.flywaydb:flyway-database-postgresql:11.14.1 - https://flywaydb.org/flyway-database-postgresql)
+        * Hibernate Models (org.hibernate.models:hibernate-models:1.0.1 - https://github.com/hibernate/hibernate-models)
+        * Hibernate ORM - hibernate-core (org.hibernate.orm:hibernate-core:7.2.7.Final - https://hibernate.org/orm)
+        * Hibernate Validator Engine (org.hibernate.validator:hibernate-validator:9.0.1.Final - https://hibernate.org/validator)
+        * HikariCP (com.zaxxer:HikariCP:7.0.2 - https://github.com/brettwooldridge/HikariCP)
+        * Jackson datatype: JSR310 (com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.2 - https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310)
+        * Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.21 - https://github.com/FasterXML/jackson)
+        * Jackson-core (com.fasterxml.jackson.core:jackson-core:2.21.2 - https://github.com/FasterXML/jackson-core)
+        * Jackson-core (tools.jackson.core:jackson-core:3.1.0 - https://github.com/FasterXML/jackson-core)
+        * jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.21.2 - https://github.com/FasterXML/jackson)
+        * jackson-databind (tools.jackson.core:jackson-databind:3.1.0 - https://github.com/FasterXML/jackson)
+        * Jackson-dataformat-YAML (com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.2 - https://github.com/FasterXML/jackson-dataformats-text)
+        * Jakarta Dependency Injection (jakarta.inject:jakarta.inject-api:2.0.1 - https://github.com/eclipse-ee4j/injection-api)
+        * Jakarta Validation API (jakarta.validation:jakarta.validation-api:3.1.1 - https://beanvalidation.org)
+        * JBoss Logging 3 (org.jboss.logging:jboss-logging:3.6.3.Final - https://www.jboss.org)
+        * JSpecify annotations (org.jspecify:jspecify:1.0.0 - http://jspecify.org/)
+        * Log4j API to SLF4J Adapter (org.apache.logging.log4j:log4j-to-slf4j:2.25.3 - https://logging.apache.org/log4j/2.x/)
+        * micrometer-commons (io.micrometer:micrometer-commons:1.16.4 - https://github.com/micrometer-metrics/micrometer)
+        * micrometer-observation (io.micrometer:micrometer-observation:1.16.4 - https://github.com/micrometer-metrics/micrometer)
+        * SnakeYAML (org.yaml:snakeyaml:2.5 - https://bitbucket.org/snakeyaml/snakeyaml)
+        * Spring AOP (org.springframework:spring-aop:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Beans (org.springframework:spring-beans:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Context (org.springframework:spring-context:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Context Support (org.springframework:spring-context-support:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Core (org.springframework:spring-core:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Data Core (org.springframework.data:spring-data-commons:4.0.4 - https://spring.io/projects/spring-data)
+        * Spring Data JPA (org.springframework.data:spring-data-jpa:4.0.4 - https://projects.spring.io/spring-data-jpa)
+        * Spring Expression Language (SpEL) (org.springframework:spring-expression:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring JDBC (org.springframework:spring-jdbc:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Object/Relational Mapping (org.springframework:spring-orm:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Transaction (org.springframework:spring-tx:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Web (org.springframework:spring-web:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * Spring Web MVC (org.springframework:spring-webmvc:7.0.6 - https://github.com/spring-projects/spring-framework)
+        * spring-boot (org.springframework.boot:spring-boot:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-autoconfigure (org.springframework.boot:spring-boot-autoconfigure:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-data-commons (org.springframework.boot:spring-boot-data-commons:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-data-jpa (org.springframework.boot:spring-boot-data-jpa:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-flyway (org.springframework.boot:spring-boot-flyway:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-hibernate (org.springframework.boot:spring-boot-hibernate:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-http-converter (org.springframework.boot:spring-boot-http-converter:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-jackson (org.springframework.boot:spring-boot-jackson:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-jdbc (org.springframework.boot:spring-boot-jdbc:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-jpa (org.springframework.boot:spring-boot-jpa:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-mail (org.springframework.boot:spring-boot-mail:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-persistence (org.springframework.boot:spring-boot-persistence:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-security (org.springframework.boot:spring-boot-security:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-servlet (org.springframework.boot:spring-boot-servlet:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-sql (org.springframework.boot:spring-boot-sql:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter (org.springframework.boot:spring-boot-starter:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-data-jpa (org.springframework.boot:spring-boot-starter-data-jpa:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-flyway (org.springframework.boot:spring-boot-starter-flyway:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-jackson (org.springframework.boot:spring-boot-starter-jackson:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-jdbc (org.springframework.boot:spring-boot-starter-jdbc:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-logging (org.springframework.boot:spring-boot-starter-logging:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-mail (org.springframework.boot:spring-boot-starter-mail:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-security (org.springframework.boot:spring-boot-starter-security:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-tomcat (org.springframework.boot:spring-boot-starter-tomcat:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-tomcat-runtime (org.springframework.boot:spring-boot-starter-tomcat-runtime:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-validation (org.springframework.boot:spring-boot-starter-validation:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-starter-webmvc (org.springframework.boot:spring-boot-starter-webmvc:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-tomcat (org.springframework.boot:spring-boot-tomcat:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-transaction (org.springframework.boot:spring-boot-transaction:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-validation (org.springframework.boot:spring-boot-validation:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-web-server (org.springframework.boot:spring-boot-web-server:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-boot-webmvc (org.springframework.boot:spring-boot-webmvc:4.0.5 - https://spring.io/projects/spring-boot)
+        * spring-security-config (org.springframework.security:spring-security-config:7.0.4 - https://spring.io/projects/spring-security)
+        * spring-security-core (org.springframework.security:spring-security-core:7.0.4 - https://spring.io/projects/spring-security)
+        * spring-security-crypto (org.springframework.security:spring-security-crypto:7.0.4 - https://spring.io/projects/spring-security)
+        * spring-security-web (org.springframework.security:spring-security-web:7.0.4 - https://spring.io/projects/spring-security)
+        * springdoc-openapi-starter-common (org.springdoc:springdoc-openapi-starter-common:3.0.3 - https://springdoc.org/springdoc-openapi-starter-common/)
+        * springdoc-openapi-starter-webmvc-api (org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3 - https://springdoc.org/springdoc-openapi-starter-webmvc-api/)
+        * swagger-annotations-jakarta (io.swagger.core.v3:swagger-annotations-jakarta:2.2.47 - https://github.com/swagger-api/swagger-core/modules/swagger-annotations-jakarta)
+        * swagger-core-jakarta (io.swagger.core.v3:swagger-core-jakarta:2.2.47 - https://github.com/swagger-api/swagger-core/modules/swagger-core-jakarta)
+        * swagger-models-jakarta (io.swagger.core.v3:swagger-models-jakarta:2.2.47 - https://github.com/swagger-api/swagger-core/modules/swagger-models-jakarta)
+        * tomcat-embed-core (org.apache.tomcat.embed:tomcat-embed-core:11.0.20 - https://tomcat.apache.org/)
+        * tomcat-embed-el (org.apache.tomcat.embed:tomcat-embed-el:11.0.20 - https://tomcat.apache.org/)
+        * tomcat-embed-websocket (org.apache.tomcat.embed:tomcat-embed-websocket:11.0.20 - https://tomcat.apache.org/)
+
+    BSD-2-Clause:
+
+        * PostgreSQL JDBC Driver (org.postgresql:postgresql:42.7.10 - https://jdbc.postgresql.org)
+
+    BSD-3-Clause:
+
+        * ANTLR 4 Runtime (org.antlr:antlr4-runtime:4.13.2 - https://www.antlr.org/antlr4-runtime/)
+
+    BSD-3-Clause (EDL-1.0):
+
+        * Angus Activation Registries (org.eclipse.angus:angus-activation:2.0.2 - https://github.com/eclipse-ee4j/angus-activation/angus-activation)
+        * Angus Mail Provider (org.eclipse.angus:angus-mail:2.0.5 - http://eclipse-ee4j.github.io/angus-mail/angus-mail)
+        * istack common utility code runtime (com.sun.istack:istack-commons-runtime:4.1.2 - https://projects.eclipse.org/projects/ee4j/istack-commons/istack-commons-runtime)
+        * Jakarta Activation API (jakarta.activation:jakarta.activation-api:2.1.4 - https://github.com/jakartaee/jaf-api)
+        * Jakarta Mail API (jakarta.mail:jakarta.mail-api:2.1.5 - https://projects.eclipse.org/projects/ee4j/jakarta.mail-api)
+        * Jakarta Persistence API (jakarta.persistence:jakarta.persistence-api:3.2.0 - https://github.com/jakartaee/persistence)
+        * Jakarta XML Binding API (jakarta.xml.bind:jakarta.xml.bind-api:4.0.4 - https://github.com/jakartaee/jaxb-api/jakarta.xml.bind-api)
+        * JAXB Core (org.glassfish.jaxb:jaxb-core:4.0.6 - https://eclipse-ee4j.github.io/jaxb-ri/)
+        * JAXB Runtime (org.glassfish.jaxb:jaxb-runtime:4.0.6 - https://eclipse-ee4j.github.io/jaxb-ri/)
+        * TXW2 Runtime (org.glassfish.jaxb:txw2:4.0.6 - https://eclipse-ee4j.github.io/jaxb-ri/)
+
+    EPL 1.0:
+
+        * H2 Database Engine (com.h2database:h2:2.4.240 - https://h2database.com)
+
+    EPL-2.0:
+
+        * Angus Mail Provider (org.eclipse.angus:angus-mail:2.0.5 - http://eclipse-ee4j.github.io/angus-mail/angus-mail)
+        * Jakarta Annotations API (jakarta.annotation:jakarta.annotation-api:3.0.0 - https://projects.eclipse.org/projects/ee4j.ca)
+        * Jakarta Mail API (jakarta.mail:jakarta.mail-api:2.1.5 - https://projects.eclipse.org/projects/ee4j/jakarta.mail-api)
+        * Jakarta Persistence API (jakarta.persistence:jakarta.persistence-api:3.2.0 - https://github.com/jakartaee/persistence)
+        * jakarta.transaction API (jakarta.transaction:jakarta.transaction-api:2.0.1 - https://projects.eclipse.org/projects/ee4j.jta)
+        * Logback Classic Module (ch.qos.logback:logback-classic:1.5.32 - http://logback.qos.ch/logback-classic)
+        * Logback Core Module (ch.qos.logback:logback-core:1.5.32 - http://logback.qos.ch/logback-core)
+
+    GNU Lesser General Public License:
+
+        * Logback Classic Module (ch.qos.logback:logback-classic:1.5.32 - http://logback.qos.ch/logback-classic)
+        * Logback Core Module (ch.qos.logback:logback-core:1.5.32 - http://logback.qos.ch/logback-core)
+
+    GPL2 w/ CPE:
+
+        * Angus Mail Provider (org.eclipse.angus:angus-mail:2.0.5 - http://eclipse-ee4j.github.io/angus-mail/angus-mail)
+        * Jakarta Annotations API (jakarta.annotation:jakarta.annotation-api:3.0.0 - https://projects.eclipse.org/projects/ee4j.ca)
+        * Jakarta Mail API (jakarta.mail:jakarta.mail-api:2.1.5 - https://projects.eclipse.org/projects/ee4j/jakarta.mail-api)
+        * jakarta.transaction API (jakarta.transaction:jakarta.transaction-api:2.0.1 - https://projects.eclipse.org/projects/ee4j.jta)
+
+    MIT:
+
+        * Checker Qual (org.checkerframework:checker-qual:3.52.0 - https://checkerframework.org/)
+        * JUL to SLF4J bridge (org.slf4j:jul-to-slf4j:2.0.17 - http://www.slf4j.org)
+        * SLF4J API Module (org.slf4j:slf4j-api:2.0.17 - http://www.slf4j.org)
+
+    MIT-0:
+
+        * reactive-streams (org.reactivestreams:reactive-streams:1.0.4 - http://www.reactive-streams.org/)
+
+    MPL 2.0:
+
+        * H2 Database Engine (com.h2database:h2:2.4.240 - https://h2database.com)

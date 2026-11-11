@@ -1,0 +1,9 @@
+target
+data
+.env
+.env.*
+**/*.mv.db
+**/*.trace.db
+src/main/resources/static
+.git
+.gitignore

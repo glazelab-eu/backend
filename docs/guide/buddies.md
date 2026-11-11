@@ -1,0 +1,22 @@
+# Buddies
+
+- What a buddy sees (the terms `terms.section.buddies` promise exactly this): only an ACCEPTED pair shares anything.
+  - Each sees the other's ID, display name and profile picture ID (`GET /api/buddies`) and, per glaze ID, which accepted buddies have it on their personal shelf (`GET /api/buddies/availability`): personal stock (`user_id` set, never club stock), `quantity_g > 0`, `keep_private` false.
+  - Never an amount, jar size, history (amount changes, past or removed entries), email, club, combination, or anything of a pending, declined, removed or deleted buddy.
+  - The rule lives only in the SQL fragment `BuddyRepository.AVAILABLE_STOCK` (with `ACCEPTED_PAIR` and `OTHER_SIDE`): `availableTo` and the feed's buddy glaze entry (`FeedRepository`) build on these constants, never a copy. The feed adds only when a glaze appeared (product decision; `terms.section.buddies` unchanged).
+  - A pending request shows the other account's ID and display name to both sides. A link preview shows the owner's display name and picture ID, never the account ID, plus the caller's relation.
+- Pairs (`buddy`): one row per pair, `user_a < user_b` in byte order (`ck_buddy_order`, `BuddyId.of`); `PENDING` with `requested_by`, then `ACCEPTED` (`accepted_at`). Decline (the asked account), cancel (the asker) and remove (either, accepted only) delete the row; nobody is told; either may ask again.
+- Transitions (`BuddyService`):
+  - asking while pending or accepted answers the same relation and writes nothing; asking while the other account's request is pending accepts it;
+  - accept is idempotent once accepted; 404 `REQUEST_NOT_FOUND` without a request from that account;
+  - decline, cancel and remove: 204 when no pair exists, 409 `CHANGED_MEANWHILE` when the pair is in another state (a stale page never removes an accepted buddy through a cancel);
+  - oneself: asking (link or club) 400 `NOT_YOURSELF`; accepting 404; declining, cancelling or removing 204.
+  - No count limits (product decision): only the rate limits bound requests.
+- Links (`buddy_link`): at most one per account, the SHA-256 hash of a 43-character `SecureTokens` token; `POST /api/buddies/link` creates or replaces it and answers it once.
+  - `POST /api/buddies/link/preview` (read-only, no lock) and `POST /api/buddies/link/request` (signed-in, CSRF, TOKEN budget) answer an unknown and a replaced token alike (404 `INVALID_LINK`, same body); a malformed token is the validation 400.
+  - A request reads the owner by hash as a scalar, locks both accounts, then reads the hash again: replacing locks the owner's row, so a request queued behind a replacement is refused.
+- Club member requests (`POST /api/buddies/requests` `{clubId, userId}`): a non-member gets 403 `CLUB_MEMBERSHIP_REQUIRED` before anything about the target is read (real and unknown clubs alike); then both accounts are locked, then the club, and both memberships are read under the club lock (`ClubMembershipLockApiTest`); a target who is not a verified member is 404 `MEMBER_NOT_FOUND`. Leaving the club later keeps the pair or request.
+- Locks: every buddy write locks both account rows in `BuddyId.ORDER` before it reads the pair (topic "Locks and transactions"). Account deletion holds only its own row and deletes the pairs (`AccountRows`): a buddy write of the other account waits and finds the account gone (404 or 204), never a deadlock (`BuddyConcurrencyApiTest`, PostgreSQL).
+- Keep private (`PATCH /api/stock/{id}` `{keepPrivate}`, `StockService.keepPrivate`, owner row lock): the owner's personal entries only; another user's or an unknown entry 404; a club entry 400 `ONLY_PERSONAL_PRIVATE` for its members (404 for others); `ck_stock_keep_private` backs it. A save keeps the flag; a removed and re-added entry starts visible. `StockView.keepPrivate` carries it.
+- The list and availability take a constant number of statements (`BuddyQueryApiTest`; two and one today).
+- The sync change log does not cover buddies, availability or stock (full fetches); every buddy write is `EXEMPT` in `SyncCoverageApiTest`.

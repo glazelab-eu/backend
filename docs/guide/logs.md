@@ -1,0 +1,21 @@
+# Logs
+
+- Operator signals for `docker compose logs api`, one line per event. `OperationsLogApiTest`, `RateLimiterLogTest`, `ImageUploadLogApiTest`, `LoggedImageStorageTest`, `RateLimiterTableTest` and `SignInDelaysTest` capture them (Logback `ListAppender`) and assert the forbidden values are absent; a new line gets a capture test the same way.
+- A repeated line goes through `config/MinuteSummary` (one line per key and minute with the count since the last one); keys are a fixed vocabulary, never a value. Tests that share a static summary `reset()` it first.
+- INFO:
+  - startup summary (`OperationsLog.started`: profiles, storage, mail on/off, email verification, rate-limit factor, tarpit, Flyway schema version, heap, slow-request threshold; non-secret settings only, never a secret's value);
+  - tarpit released (on the client's next request after the flag ran out);
+  - site-admin ban (and the club admin it promoted), unban, profile picture moderation, photo removal and photo type changes (`ImageController.deleteImage`, `changeImageKind`: admin and photo IDs only, when the uploader is someone else; never the kind);
+  - retention purges (counts only);
+  - refused image uploads (`ImageEncoder`, by reason class: empty or too large, too many pixels, unsupported format, undecodable data; per class and minute).
+- WARN:
+  - tarpit flagged (the client by its label, once per flag);
+  - failed sign-ins per client label (`RateLimiter.signInFailed`: at 5, 20, 80 within the tarpit window, not per attempt);
+  - a full client table (`RateLimiter`) or sign-in delay table (`SignInDelays`): the count only, once per full period;
+  - slow requests (`glazelab.log.slow-request`, default 2s): the route template such as `GET /api/glazes/{id}/images`, never the path, query or IDs; one line per route and minute with a count of the suppressed ones;
+  - mail delivery failures (exception class chain only, never the recipient or its domain: a domain can name a person); dropped mail queue; failed storage cleanup;
+  - the busy image encoder (503 answers, per minute);
+  - image storage failures (`storage/LoggedImageStorage` around the configured store: operation and exception class, per operation and minute, never the key; a read of a missing object is no failure).
+- ERROR: unhandled request failures only (`ApiErrorHandler`, with the exception; `logServerErrorDetail=false` keeps row values out).
+- Never in a log: email addresses, client IP addresses or networks, tokens, secrets, display names, request bodies, free text (reasons, notes, messages), file names, request paths or query strings. Row IDs (account, photo, club, blocklist entry) are allowed where a line above names them.
+- A line names a client only by `security/ClientLabel.of(clientKey)`: 8 hex digits of an HMAC-SHA256 of the address part under a per-process random key (stable within a run, new after a restart), plus the account ID of a signed-in budget. Never log `RateLimiter.clientKey`, an IP or an IPv6 /64; the limiter keeps the real key in memory only. Capture tests check IPv4, IPv6 and /64 forms (`RateLimiterLogTest`).

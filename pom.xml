@@ -1,0 +1,113 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>4.0.5</version><relativePath/></parent>
+  <groupId>eu.glazelab.api</groupId><artifactId>glazelab</artifactId><version>0.1.0</version>
+  <name>Glazelab API</name>
+  <description>The API of Glazelab, a ceramic glaze library, stock tracker and glaze-combination notebook.</description>
+  <licenses>
+    <license><name>AGPL-3.0-or-later</name><url>https://www.gnu.org/licenses/agpl-3.0.txt</url><distribution>repo</distribution></license>
+  </licenses>
+  <!-- glazelab.build: the commit or build label of this jar (`-Dglazelab.build=<id>`, the Dockerfile's GLAZELAB_BUILD); by default the project version; `/api/health` answers it. -->
+  <properties><java.version>21</java.version><lombok.version>1.18.44</lombok.version><forkCount>4</forkCount><glazelab.build>${project.version}</glazelab.build></properties>
+  <dependencyManagement>
+    <dependencies>
+      <!-- AWS SDK v2, pinned; only the S3 client and the JDK URLConnection HTTP client are used. -->
+      <dependency><groupId>software.amazon.awssdk</groupId><artifactId>bom</artifactId><version>2.55.14</version><type>pom</type><scope>import</scope></dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-mail</artifactId></dependency>
+    <dependency><groupId>org.springdoc</groupId><artifactId>springdoc-openapi-starter-webmvc-api</artifactId><version>3.0.3</version></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-flyway</artifactId></dependency>
+    <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
+    <!-- spring-aspects brings aspectjweaver (EPL-2.0 only, not combinable with the AGPL); nothing here uses AspectJ (@Configurable, @Aspect). -->
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId>
+      <exclusions><exclusion><groupId>org.springframework</groupId><artifactId>spring-aspects</artifactId></exclusion></exclusions>
+    </dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-validation</artifactId></dependency>
+    <dependency><groupId>software.amazon.awssdk</groupId><artifactId>s3</artifactId>
+      <exclusions>
+        <exclusion><groupId>software.amazon.awssdk</groupId><artifactId>apache-client</artifactId></exclusion>
+        <exclusion><groupId>software.amazon.awssdk</groupId><artifactId>apache5-client</artifactId></exclusion>
+        <exclusion><groupId>software.amazon.awssdk</groupId><artifactId>netty-nio-client</artifactId></exclusion>
+      </exclusions>
+    </dependency>
+    <dependency><groupId>software.amazon.awssdk</groupId><artifactId>url-connection-client</artifactId></dependency>
+    <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>${lombok.version}</version><optional>true</optional></dependency>
+    <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><scope>runtime</scope></dependency>
+    <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><scope>runtime</scope></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>2.1.5</version><scope>test</scope></dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <!-- The jar carries its licence and the notices of the libraries inside it (META-INF/); Boot's own resource filtering stays. -->
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution><id>notices</id><phase>process-resources</phase><goals><goal>copy-resources</goal></goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+              <resources><resource><directory>${project.basedir}</directory><includes><include>LICENSE</include><include>THIRD-PARTY.txt</include></includes></resource></resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>${lombok.version}</version></path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes><exclude><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId></exclude></excludes>
+        </configuration>
+        <executions>
+          <!-- META-INF/build-info.properties: the version and build label that /api/health answers; no build time, so a rebuild of the same source is the same jar content. -->
+          <execution><goals><goal>build-info</goal></goals>
+            <configuration><time>off</time><additionalProperties><label>${glazelab.build}</label></additionalProperties></configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin><groupId>org.jacoco</groupId><artifactId>jacoco-maven-plugin</artifactId><version>0.8.14</version>
+        <executions>
+          <execution><goals><goal>prepare-agent</goal></goals></execution>
+          <execution><id>report</id><phase>test</phase><goals><goal>report</goal></goals></execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <!-- THIRD-PARTY.txt (the licences of the libraries inside the jar): `mvn -P third-party generate-resources`, then commit the file. -->
+    <profile><id>third-party</id>
+      <build>
+        <plugins>
+          <plugin><groupId>org.codehaus.mojo</groupId><artifactId>license-maven-plugin</artifactId><version>2.4.0</version>
+            <executions>
+              <execution><id>third-party</id><phase>generate-resources</phase><goals><goal>add-third-party</goal></goals>
+                <configuration>
+                  <outputDirectory>${project.basedir}</outputDirectory>
+                  <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
+                  <excludedScopes>test,provided,system</excludedScopes>
+                  <!-- Lombok (the one optional dependency) runs only in the compiler and is not in the jar. -->
+                  <includeOptional>false</includeOptional>
+                  <licenseMerges>
+                    <licenseMerge>Apache-2.0|Apache License 2.0|Apache License Version 2.0|Apache License, Version 2.0|The Apache License, Version 2.0|The Apache Software License, Version 2.0</licenseMerge>
+                    <licenseMerge>BSD-3-Clause (EDL-1.0)|EDL 1.0|Eclipse Distribution License - v 1.0|Eclipse Distribution License v. 1.0</licenseMerge>
+                    <licenseMerge>EPL-2.0|EPL 2.0|Eclipse Public License - v 2.0|Eclipse Public License v. 2.0</licenseMerge>
+                    <licenseMerge>MIT|The MIT License</licenseMerge>
+                  </licenseMerges>
+                  <sortArtifactByName>true</sortArtifactByName>
+                  <fileTemplate>/org/codehaus/mojo/license/third-party-file-groupByLicense.ftl</fileTemplate>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

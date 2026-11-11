@@ -1,0 +1,38 @@
+# Bans
+
+- A ban (product decision; the terms `terms.section.account` say the same) is the account's own deletion run by a site admin (`AccountDeletionService.removeRecords`, topic "Account deletion") plus the address on the blocklist. The only differences from an own deletion:
+  - no password; both account rows are locked;
+  - the last admin of a club with other members does not refuse ("Clubs" below);
+  - `image_deletion.deleted_by` of the photos it removes names the banning admin;
+  - the address is blocked and the ban logged in the same transaction.
+- `BanController`: site admins only (401 guests, 403 others, before anything about the target is read or locked); writes need CSRF and the current terms.
+  - `POST /api/admin/users/{id}/ban` `BanInput {reason, blockPictures?}` (`reason` required, stripped, ≤ 500; `blockPictures` default false) → 204. 409 `AccountDeletionService.SELF_BAN` for the caller's own account; 409 `ADMIN_BAN` for any site admin (remove the flag with SQL first, so the last site admin can never be banned); 404 `ACCOUNT_NOT_FOUND` for an unknown or already removed account (a pending one can be banned); 403 again under the lock if the caller's flag went meanwhile; 409 `CHANGED_MEANWHILE` when a concurrent write breaks a key.
+  - `GET /api/admin/bans?page=` → `BanPageView {entries, hasMore}` of `BanView {id, reason, bannedAt}`: newest first, `ImageDeletionController.PAGE_SIZE`, one slice statement; never an address, hash or name.
+  - `DELETE /api/admin/bans/{id}` (unban) → 204; 404 `EmailBlocklist.BAN_NOT_FOUND` for an unknown or already lifted entry. The address may register again; the removed account does not come back. No lift by address (product decision).
+- Blocklist (`email_block`, `model/EmailBlock`): `email_hash` (unique `uq_email_block_hash`), the reason and `banned_at`, nothing else (product decision): no display name, no `banned_by`, never the address. Entries never expire; lifting deletes the row. The banned account's ID lives only in `admin_action` (90 days).
+  - The hash is personal data (matchable with the address and the key): docs and terms call it pseudonymous, never anonymous.
+  - Hash: hex HMAC-SHA-256 of `model/EmailAddresses.canonical` under `glazelab.ban.secret` (`GLAZELAB_BAN_SECRET`). Keyed, because a bare SHA-256 of an address can be dictionary-tested; one global key and no per-entry salt, so a lookup is one statement on the unique index (`existsByEmailHash`).
+  - Secret: at least 32 characters; the API refuses to start without one and `prod` refuses the dev default (`dev-only-…`, `application-dev.properties`); never logged.
+  - One secret, set once, no rotation (product decision): lost or changed, every entry stops matching, which empties the effective ban list; back it up to keep the bans.
+  - A value containing `${` is read as a Spring placeholder and the startup error prints the whole value: use hex (`openssl rand -hex 32`).
+  - A second ban of a mailbox already listed keeps the first entry (its log row names it).
+- Normalisation (`EmailAddresses.canonical`, vectors in `EmailAddressesTest`): trim, NFC, locale-neutral lower case, a trailing domain dot dropped, `+tag` cut, and for `gmail.com`/`googlemail.com` every local dot removed and the domain written `gmail.com`.
+  - Not caught: other alias schemes, punycode against Unicode domains, own or catch-all domains, any new mailbox. False-positive risk: a provider where `+` belongs to another person's mailbox name.
+  - Registration still stores `trim().toLowerCase(ROOT)`; only the blocklist compares canonical forms. Accounts are found by the narrower lookup key (topic "Schema"), which the blocklist does not fold: a long s or a dotless i in a banned address's spelling is a different mailbox to it.
+- The gate (`AccountService`):
+  - registration asks the blocklist for every address and treats a banned one as an address in use (no insert, no setup token, same answer and work);
+  - `mailRegistration` and `request` (password, verification and magic-link mails) ask again off the request thread and send nothing;
+  - `validToken` refuses every account link of an account whose address is banned (the generic invalid-link 400).
+  - The last two cover a registration that looked before a ban committed and inserted afterwards (a pending account nobody can activate, purged after 24 hours) and an account that already existed under another writing of the same mailbox: it keeps signing in with its password but gets no mail and no working link (the admin bans it too).
+- Clubs (`lockClubs`; memberships read under each club lock):
+  - only verified members count as others: a club whose other members are all pending leftovers goes with the account (their membership rows first, `MembershipRepository.deleteByClubs`);
+  - where the banned account is the last admin, the member with the earliest `membership.joined_at` (ties by account ID in `BuddyId.ORDER`) becomes admin (`MembershipRepository.promote`, a bulk update under the club lock; logged by IDs and as `CLUB_ADMIN_PROMOTED`);
+  - the heir's account row is not locked (nothing locks an account after a club): the heir's leave or deletion queues on the club lock and reads the new role (a leave is then 409 `LAST_ADMIN` if nobody else remains).
+- Audit (`admin_action`, `model/AdminAction`): one row per site-admin action, in that action's transaction: `BAN` (target account ID, blocklist entry, reason), `UNBAN` (entry), `AVATAR_REMOVED` (every moderation removal or block of a profile picture: `AvatarService.moderate`, a remove decision on a gone picture, `blockPictures`; the picture and its account while known), `CLUB_ADMIN_PROMOTED` (club, promoted member), `TITLE_CORRECTED` (a combination's title changed by a site admin who is not its author: author while known, combination, `old_value`/`new_value`, which only this type carries, `ck_admin_action_values`).
+  - Target IDs have no FK (the row outlives them); `actor_id` is SET NULL; no endpoint reads the rows (SQL).
+  - The daily `AdminLog.purge` deletes rows older than `glazelab.admin.action-retention` (90 days, promised by the terms) and logs the count only.
+- `blockPictures` (`AvatarService.blockReportedOf`; inside the ban after the image locks, before `AccountRows`): the remove decision for every picture of the account with an OPEN report (`avatar_report.owner_id`): the current one is removed and blocked (`ADMIN_REMOVED`), earlier evidence copies are blocked, their open reports ACTIONED; then the deletion deletes every copy and keeps the fingerprints.
+  - Pictures whose reports were all dismissed stay unblocked. Without `blockPictures` the open reports are CLOSED with the account and those pictures can no longer be blocked.
+- Locks: actor and target account rows in `BuddyId.ORDER` → the target's clubs by ID → authored glazes → combinations → image rows → picture and evidence rows in ID order (`blockPictures`) → `AccountRows` → blocklist and audit inserts (no lock: a racing duplicate hash fails with 409). Unban locks the actor's account, then deletes by ID.
+  - A ban and a buddy write of the same pair queue on the same rows; a ban and the account's own deletion queue on the target row (the later answers 404 or 401); two bans of one account give 204 and 404 (`BanConcurrencyApiTest`, PostgreSQL).
+  - A sign-in whose session insert meets the removal answers like a wrong password (topic "Locks and transactions"; `SessionInsertConflictApiTest`).

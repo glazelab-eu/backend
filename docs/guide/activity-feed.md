@@ -1,0 +1,27 @@
+# Activity feed
+
+- Scope (product decision): ADDITIONS the account can see now, by accepted buddies and in current clubs, newest first, within `glazelab.feed.window` (30 days; a display bound only). No push, no mail. Edits, removals, leaving and deletion are no events.
+- Never store feed events (a copy would need deleting on every removal, leave, unfriend and account deletion). `FeedRepository` derives them at read time from `combination.published_at`, `stock.created_at` (V34), `buddy.accepted_at`, `membership.joined_at`, joined against the CURRENT pair, memberships, stock flags and actor.
+  - So an entry whose item, pair, membership or actor account is gone, or whose buddy glaze is kept private or used up, is not found (a used-up club entry stays), and no write path knows about the feed.
+  - No table: nothing to do on account deletion or a ban. The change log is not used.
+- One native `UNION ALL` statement with a derived column list, portable to H2 and PostgreSQL; `FeedPostgresApiTest` runs the `FeedApiTest` matrix with `GLAZELAB_TEST_POSTGRES_URL`.
+- Types (`FeedDtos.FeedType`, a shared string enum):
+  - `BUDDY_COMBINATION` / `CLUB_COMBINATION`: a buddy / current co-member published. One entry per combination: buddy when the buddy rule holds and buddies are on, else club with the smallest shared club (`clubId`).
+  - `BUDDY_GLAZE`: new on a buddy's personal shelf; `AVAILABLE_STOCK` exactly; name and time only.
+  - `NEW_BUDDY`: the other account accepted the caller's request.
+  - `BUDDY_REQUEST`: a pending request addressed to the caller, never one they sent; asker's name and the request's `created_at`, as the incoming list shows. Shown whatever the two sources and however old (the buddy list counts it; product decision); gone once answered, withdrawn or the asker's account is gone.
+  - `CLUB_MEMBER`: joined.
+  - `CLUB_GLAZE`: a member put a glaze on the club shelf; never amounts; not shown with a NULL `added_by`.
+- Every branch:
+  - actor verified and not the caller;
+  - later than the window's floor, except `BUDDY_REQUEST`, which binds no `:floor` (`FeedRepository.withFloor` leaves it unbound when both sources are off);
+  - STRICTLY later than the caller's `accepted_at` / `joined_at` for that pair or club (this also hides memberships older than V31, which carry the migration's time); a club combination also later than its author's join.
+- Query plan: the combination branches start from the viewer's pairs and co-members (`CO_MEMBER`: implied by the shared-club rule, needed for the plan) into `combination_author_published_idx`; memberships by `membership_user_idx` (V34; the primary key leads with `club_id`). Never start from the window's publications (PostgreSQL: 170 ms against 6 ms at 20,000 combinations).
+- Endpoints (`FeedController`; signed-in, API budget):
+  - `GET /api/feed?before=`: `FeedPageView`, pages of `FeedService.PAGE_SIZE` (30) by keyset; `next` is opaque (`<epoch µs>.<type>.<entry key>`; order time desc, type, key); a malformed cursor is 400.
+  - `POST /api/feed/seen {through}`: moves `app_user.feed_seen_at` forward only (`AppUserRepository.markFeedSeen`: one conditional update, at most the server's now; a time before 1970 writes nothing, PostgreSQL bounds the column). The column is not updatable through the entity. Locks the account row alone.
+  - `GET /api/feed/unread`: `FeedBadgeView`, one statement after the session's (the app's poll). `newest` is the newest unread entry's time. The requester fields (ID, display name, time; all null without one) describe the newest waiting request later than the seen position, `requests` counts them; they come from the `BUDDY_REQUEST` branch of the same statement, so the feed's visibility applies.
+  - `PUT /api/account/feed {buddies, clubs}`: `feed_buddies`, `feed_clubs` (default on), under the account lock.
+  - Both writes need the current terms and are `EXEMPT` in `SyncCoverageApiTest`; `SyncService.FORMAT` is unaffected.
+- Badge: `UserView.feedUnread` = entries later than `feed_seen_at` (all of them before the first look), capped at `FeedService.BADGE_CAP` (100); a waiting request older than the window counts until the page was looked at past it. It rides with `feedBuddies` and `feedClubs` on `GET /api/auth/me` and the terms answer (one more statement).
+- Statement counts are constant in buddies, clubs, entries, requests and sources (`FeedQueryApiTest`: page = badge, `/me` one more; 3, 3 and 4 today).

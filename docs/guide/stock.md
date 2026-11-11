@@ -1,0 +1,20 @@
+# Stock
+
+- One entry per glaze and owner: a user (personal) or a club (`user_id` NULL). Club stock belongs to the club and survives its adder leaving or deleting their account. Columns: `jar_size_g` (`ck_stock_jar_size`); `keep_private` (`ck_stock_keep_private`: personal entries only, topic "Buddies").
+- `added_by` (`fk_stock_added_by` ON DELETE SET NULL; `ck_stock_added_by`: club entries only) records the member who created a club entry: information and that member's removal right only. Set on creation, never by a later save; cleared by `StockRepository.forgetAdder` when they leave or are removed; nulled by the FK on account deletion. So the API never names a former member (`StockView.addedById`; a rejoined member does not get it back).
+- Any member saves amounts and jar sizes of a club entry ("used up" included). Removal is `Stock.removableBy`, the one rule: personal stock by its owner, club stock by a club ADMIN or its `added_by` (`StockView.canRemove` per viewer from `CurrentUser.viewer`).
+- `stock.created_at` is set once by the `Stock` constructor and never by a save (NULL for entries older than V34; never in `StockView`): the activity feed's only use of it.
+- `POST /api/stock` sets the amount (upsert under the owner row lock, last write wins; "used up" is 0 g) and keeps the jar size when omitted.
+  - An omitted `quantityG` keeps the stored amount (a size-only save; a missing entry is created at 0 g), so a size change never resets an amount another device saved; neither field is 400 `NOTHING_TO_SAVE`.
+  - A set has the addition's bound (`@Max(MAX_QUANTITY_G)`, also on `NewGlazeStock`), so no stored amount is out of an addition's reach.
+- `POST /api/stock/add` (`StockAddition`) adds `addG` grams to the stored amount under the same lock and answers the entry's `StockView`. Every jar addition uses it, so devices with a stale shelf and concurrent club members never lose a jar (`StockJarApiTest`, on PostgreSQL `StockConcurrencyApiTest`): never compute a total on the client and send it as a save.
+  - A missing entry is created at `addG` (`created_at` and `added_by` as on a first save).
+  - A sent `jarSizeG` is stored only on an entry without a jar size (a new or recreated one included); a stored one is kept unless `replaceJarSize` is true (a stale one-click add never resets another device's jar size).
+  - A total above `StockService.MAX_QUANTITY_G` (10^9, the client's bound) is 400 `AMOUNT_TOO_LARGE`.
+  - An optional client `requestId` makes a repeat count once: `StockAdditionRepeats` remembers (account, request ID) → entry for 15 minutes, checked under the owner lock after `lockOwner`; a repeat for the same glaze and owner answers the entry as it is now, an entry removed since gets the addition again.
+  - The ID is remembered in `beforeCommit` and forgotten on rollback, so a refused or rolled-back addition adds when repeated. The memory is per JVM: one API instance only; more instances need a shared store.
+- `DELETE /api/stock/{id}` locks the owner row, reads role and adder under it, then deletes by ID.
+- `StockService` is the only place that authorizes and writes an entry: `ownerOf` validates the request's `ownerType`, then `lockOwner`, then `save` or `add`; `remove` does its own lock and answers 404 to whoever cannot see the entry, 403 to a member without the removal right.
+  - `lockOwner` locks a personal owner with `CurrentUser.lockUser` (an account deleted or banned meanwhile is 401, never a 500) and refuses a non-member before `clubs.lockById` (an early refusal only), decides by a fresh membership query after it, and answers its caller's denial (403 for a save, 404 for a removal) for a non-member or an unknown club.
+  - `NewGlaze.stock` (`clubId` null = personal) goes through it inside `GlazeService.add`, after the owner lock and before any insert: a refused club, an invalid amount or a later failure creates no glaze, manufacturer or stock.
+- `POST /api/glazes` answers `GlazeCreatedView`; uploads answer the created `ImageView`.

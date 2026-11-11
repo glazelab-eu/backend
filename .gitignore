@@ -1,0 +1,15 @@
+target/
+data/
+src/main/resources/static/
+*.mv.db
+*.trace.db
+*.log
+.env
+.env.*
+!.env.example
+.idea/
+*.iml
+.DS_Store
+*.swp
+
+.idea

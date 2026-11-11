@@ -1,0 +1,29 @@
+# Combinations
+
+- Steps: a combination is an ordered list of `CombinationStep`s (`step_type`; checks `ck_step_type`, `ck_step_shape`): `GLAZE` (glaze, coats, optional method and notes) or `CUSTOM` (a label of up to 80 characters plus notes, e.g. a firing; no glaze, coats or method). `StepInput.type` defaults to GLAZE.
+  - `CombinationService.checked` is the one validator (up to `MAX_STEPS` = 30; custom-only sequences are valid): every saved step, a draft's too, satisfies its type. A title and at least one step are required only to publish (`CombinationService.requirePublishable`).
+  - Everything about glazes looks at glaze steps only: usage counts, `findUsingGlaze`/glaze removal, stock matching, "I can make now" (never vacuous), filters and picture indexing.
+  - `GET /api/combinations` takes no parameters.
+  - Every listing (and the sync delta) is ordered in the query by `CombinationRepository.LISTING_ORDER`: newest first by `published_at`, a draft by `created_at`, then by ID (both columns are instants).
+- Drafts: `published_at` NULL marks a draft; `findVisible` (published or own) feeds the listing. `CombinationView.publishedAt` is null exactly for drafts and set once; `CombinationView.draft` marks the author's own.
+  - Only the author uploads to a draft (others 404), so a draft holds only the author's photos and its steps never lock.
+  - A draft's photos keep the visibility the author chose but are effectively PRIVATE until publication (topic "Photos", drafts).
+  - Publishing changes no photo row: setting `published_at` applies every photo's chosen visibility in the same row and transaction, under the same IDs.
+  - `POST /api/combinations/{id}/publish` is one-way and idempotent and locks account → combination. PUT keeps a draft a draft (`draft` is read on create only).
+- Variations: `based_on_id` (`fk_combination_based_on`, ON DELETE SET NULL) is set on create only. A source the author cannot see or that is gone is silently dropped, never a 4xx (it would confirm a hidden draft). `CombinationView.basedOnId` is set only when the source is in the same visible listing.
+- Final firing (`model/FinalFiring`, `FiringAtmosphere`): optional columns `cone`, `temperature_c` (`ck_combination_temperature`, 100–1600), `atmosphere` (`ck_combination_atmosphere`), `clay_body` (120), `kiln` (80), `fired_on`; the only structured firing data (firing steps stay label and details).
+  - `FinalFiring.of` is the one validator (create and PUT): text is stripped, blank becomes null, lengths count after stripping, the cone matches `0?[1-9][0-9]?` (no half or slash cones); each failure is a 400 with its public constant.
+  - `fired_on` shares `PhotoDetails.firedOn`'s range (1900-01-01..2100-12-31, `DATE_OUT_OF_RANGE`): the column has no check, and a year PostgreSQL cannot store must not reach it as a 409.
+  - `NewCombination` types the fields as `Optional`, and `spring.jackson.deserialization.use-null-for-missing-reference-values` reads a missing one as null: null or blank clears, missing keeps the stored value on PUT, so older clients never wipe a firing. Never drop that setting or turn these fields into plain types.
+  - A firing change is metadata, never a step change: the photo lock never blocks it.
+  - `CombinationView` carries the fields (the combination's visibility). Variations do not copy them on the server (the client sends what it copied).
+  - `OpenApiConfig` adds `null` to the enum of every nullable enum property, so clients type it as nullable.
+- Edit and delete: PUT reuses `checked`.
+  - `PATCH …/title` (`TitleEdit` → `TitleView`, `CombinationService.retitle`) changes only the title, with the PUT's title rules (`@Plain`, ≤ 160, stripped; blank refused with `TITLE_REQUIRED` once published, kept on a draft); an unchanged title records and logs nothing. Locks actor → combination.
+  - Title PATCH and PUT are last write wins: a Studio form opened before a rename sends the old title with its next save.
+  - Tags have no author and any signed-in account edits them (`PATCH …/tags`); a PUT with `baseTags` (the tags the editor opened with) applies only `tags` minus `baseTags` and the reverse to the stored set, so tags others changed meanwhile stay; without it the PUT replaces the set (older clients). The other fields stay last write wins (no version column).
+  - `CombinationService.hasForeignPhotos` (the one copy of the rule; also for DELETE and `stepsLocked`): any photo the author can see (`ImageRecord.visibleTo` with the author's club IDs) has another or anonymous uploader.
+  - With foreign photos, every structural PUT change (a step added, removed, reordered or changed, custom ones included) is 409 pointing to a variation; metadata and canonically identical steps pass (null and empty method/notes compare equal; unchanged steps are never rewritten).
+  - DELETE refuses with foreign photos; otherwise it removes steps, tags, favourites and own photo records with their audits atomically.
+  - A foreign photo is visible to the author when added (`AUTHOR_MUST_SEE`, topic "Photos"). A CLUB photo of a club the author later leaves or is removed from is hidden from them and neither locks nor leaks (product decision: the leave is never refused and the photo stays with its club); a DELETE of the combination removes it with the others, logged in `image_deletion`.
+  - The author's clubs are read without a club lock there: a leave racing an edit or deletion gives the outcome of one order or the other. The uploader leaving changes nothing for the author.
